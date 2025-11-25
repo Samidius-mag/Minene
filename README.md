@@ -63,7 +63,22 @@ chmod +x build-all.sh
 build-all.bat
 ```
 
-4. Скопируйте собранные JAR файлы из `plugins/[PluginName]/target/` в папку `plugins/` сервера
+4. Установите плагины на сервер:
+   ```bash
+   # Linux/Mac - копирование в текущую директорию
+   chmod +x install-plugins.sh
+   ./install-plugins.sh
+   
+   # Или укажите путь к папке сервера:
+   ./install-plugins.sh /path/to/minecraft-server
+   
+   # Windows
+   install-plugins.bat
+   # Или с указанием пути:
+   install-plugins.bat C:\path\to\minecraft-server
+   ```
+   
+   **Альтернативно:** Скопируйте собранные JAR файлы из `plugins/[PluginName]/target/` в папку `plugins/` сервера вручную
 
 5. Запустите сервер первый раз:
 ```bash

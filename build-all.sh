@@ -35,4 +35,7 @@ echo "JAR файлы находятся в:"
 for plugin in "${PLUGINS[@]}"; do
     echo "  - plugins/$plugin/target/$plugin-1.0.0.jar"
 done
+echo ""
+echo "Для установки плагинов на сервер выполните:"
+echo "  ./install-plugins.sh [путь_к_серверу]"
 

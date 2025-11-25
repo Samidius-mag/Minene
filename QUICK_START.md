@@ -47,7 +47,20 @@ JAR файлы будут находиться в:
 - `plugins/MineneRulers/target/MineneRulers-1.0.0.jar`
 - `plugins/MineneWorld/target/MineneWorld-1.0.0.jar`
 
-Скопируйте эти файлы в папку `plugins/` вашего Minecraft сервера.
+### Установка плагинов на сервер:
+
+**Автоматически (рекомендуется):**
+```bash
+# Linux/Mac
+chmod +x install-plugins.sh
+./install-plugins.sh [путь_к_серверу]
+
+# Windows
+install-plugins.bat [путь_к_серверу]
+```
+
+**Вручную:**
+Скопируйте JAR файлы из `plugins/[PluginName]/target/` в папку `plugins/` вашего Minecraft сервера.
 
 ## Решение проблем
 
