@@ -226,17 +226,37 @@ public class MineneLobby extends JavaPlugin implements Listener {
             int y = safeLocation.getBlockY();
             int z = safeLocation.getBlockZ();
             
-            // Проверяем, что блок под ногами не воздух и не портал
+            // Проверяем блоки: под ногами должен быть пол (шерсть), на уровне игрока и выше - воздух
             Block blockBelow = world.getBlockAt(x, y - 1, z);
             Block blockAt = world.getBlockAt(x, y, z);
             Block blockAbove = world.getBlockAt(x, y + 1, z);
             
-            // Если блоки не подходят, ищем безопасное место
+            // Проверяем, что блок под ногами - это пол (шерсть), а не портал или воздух
+            Material floorMaterial = Material.valueOf(getConfig().getString("floor-material", "WHITE_WOOL"));
+            if (blockBelow.getType() != floorMaterial) {
+                // Если под ногами не пол, ищем место где есть пол
+                for (int checkY = y - 2; checkY <= y + 2; checkY++) {
+                    Block checkBlockBelow = world.getBlockAt(x, checkY - 1, z);
+                    Block checkBlockAt = world.getBlockAt(x, checkY, z);
+                    Block checkBlockAbove = world.getBlockAt(x, checkY + 1, z);
+                    if (checkBlockBelow.getType() == floorMaterial && 
+                        checkBlockAt.getType() == Material.AIR && 
+                        checkBlockAbove.getType() == Material.AIR) {
+                        safeLocation.setY(checkY);
+                        break;
+                    }
+                }
+            }
+            
+            // Дополнительная проверка: убеждаемся, что блоки на уровне игрока - воздух
+            blockAt = world.getBlockAt(safeLocation.getBlockX(), safeLocation.getBlockY(), safeLocation.getBlockZ());
+            blockAbove = world.getBlockAt(safeLocation.getBlockX(), safeLocation.getBlockY() + 1, safeLocation.getBlockZ());
+            
             if (blockAt.getType() != Material.AIR || blockAbove.getType() != Material.AIR) {
                 // Ищем свободное место выше
-                for (int checkY = y; checkY <= y + 3; checkY++) {
-                    Block checkBlock = world.getBlockAt(x, checkY, z);
-                    Block checkBlockAbove = world.getBlockAt(x, checkY + 1, z);
+                for (int checkY = safeLocation.getBlockY(); checkY <= safeLocation.getBlockY() + 3; checkY++) {
+                    Block checkBlock = world.getBlockAt(safeLocation.getBlockX(), checkY, safeLocation.getBlockZ());
+                    Block checkBlockAbove = world.getBlockAt(safeLocation.getBlockX(), checkY + 1, safeLocation.getBlockZ());
                     if (checkBlock.getType() == Material.AIR && checkBlockAbove.getType() == Material.AIR) {
                         safeLocation.setY(checkY);
                         break;
