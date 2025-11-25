@@ -1,0 +1,22 @@
+# Конфигурация плагина авторизации MineneAuth
+
+# Время на авторизацию (в секундах)
+auth-timeout: 60
+
+# Минимальная длина пароля
+min-password-length: 6
+
+# Максимальная длина пароля
+max-password-length: 32
+
+# Использовать хеширование паролей (BCrypt)
+use-password-hashing: true
+
+# Соль для хеширования (оставьте пустым для автоматической генерации)
+password-salt: ""
+
+# Хранение данных
+database:
+  type: json
+  file: players.json
+
