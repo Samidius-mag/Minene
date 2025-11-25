@@ -1,0 +1,22 @@
+name: MineneLobby
+version: 1.0.0
+main: ru.minene.lobby.MineneLobby
+api-version: 1.20
+author: Minene Team
+description: Лобби с порталами в государства для сервера Minene
+
+depend: [MineneAuth]
+
+commands:
+  lobby:
+    description: Телепортироваться в лобби
+    usage: /lobby
+
+permissions:
+  minenelobby.*:
+    description: Все права плагина лобби
+    default: false
+  minenelobby.admin:
+    description: Административные права
+    default: op
+

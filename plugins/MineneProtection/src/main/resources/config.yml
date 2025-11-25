@@ -1,0 +1,31 @@
+# Конфигурация плагина защиты MineneProtection
+
+# Государства
+states:
+  omega:
+    center-x: 0
+    center-z: 0
+    size: 5000
+    castle-radius: 200
+  
+  beta:
+    center-x: 0
+    center-z: 7000
+    size: 5000
+    castle-radius: 200
+  
+  vega:
+    center-x: 0
+    center-z: -7000
+    size: 5000
+    castle-radius: 200
+
+# Ширина лавы между государствами
+lava-width: 200
+
+# Сообщения
+messages:
+  protected-territory: "§cЭта территория защищена!"
+  lava-territory: "§cВы не можете строить в лаве между государствами!"
+  castle-territory: "§cТерритория замка защищена!"
+

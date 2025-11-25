@@ -1,0 +1,23 @@
+name: MineneAuth
+version: 1.0.0
+main: ru.minene.auth.MineneAuth
+api-version: 1.20
+author: Minene Team
+description: Система авторизации для сервера Minene
+
+commands:
+  login:
+    description: Войти в систему
+    usage: /login <пароль>
+  register:
+    description: Зарегистрироваться
+    usage: /register <пароль> <подтверждение пароля>
+
+permissions:
+  mineneauth.*:
+    description: Все права плагина авторизации
+    default: false
+  mineneauth.admin:
+    description: Административные права
+    default: op
+

@@ -1,0 +1,21 @@
+name: MineneWorld
+version: 1.0.0
+main: ru.minene.world.MineneWorld
+api-version: 1.20
+author: Minene Team
+description: Генерация границ государств и лавы для сервера Minene
+
+commands:
+  mineneworld:
+    description: Команды управления миром
+    usage: /mineneworld <generate|reload>
+    aliases: [mworld, mw]
+
+permissions:
+  mineneworld.*:
+    description: Все права плагина мира
+    default: false
+  mineneworld.admin:
+    description: Административные права
+    default: op
+

@@ -1,0 +1,24 @@
+name: MineneProtection
+version: 1.0.0
+main: ru.minene.protection.MineneProtection
+api-version: 1.20
+author: Minene Team
+description: Защита территорий для сервера Minene
+
+commands:
+  protection:
+    description: Команды управления защитой
+    usage: /protection <info|reload>
+    aliases: [protect, prot]
+
+permissions:
+  mineneprotection.*:
+    description: Все права плагина защиты
+    default: false
+  mineneprotection.admin:
+    description: Административные права
+    default: op
+  mineneprotection.bypass:
+    description: Обход защиты территорий
+    default: op
+

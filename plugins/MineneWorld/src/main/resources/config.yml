@@ -1,0 +1,46 @@
+# Конфигурация плагина генерации мира MineneWorld
+
+# Автоматическая генерация при первом запуске
+auto-generate: true
+
+# Государства
+states:
+  omega:
+    center-x: 0
+    center-z: 0
+    size: 5000
+  
+  beta:
+    center-x: 0
+    center-z: 7000
+    size: 5000
+  
+  vega:
+    center-x: 0
+    center-z: -7000
+    size: 5000
+
+# Ширина лавы между государствами
+lava-width: 200
+
+# Высота лавы (Y координата)
+lava-y: 64
+
+# Материал границы (BARRIER, BEDROCK, etc.)
+border-material: BEDROCK
+
+# Глубина лавы (сколько блоков вниз)
+lava-depth: 10
+
+# Генерация замков
+generate-castles: true
+
+# Размер замка
+castle-size: 50
+
+# Высота замка
+castle-height: 30
+
+# Материал замка
+castle-material: STONE_BRICKS
+
