@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -49,6 +50,26 @@ public class MineneLobby extends JavaPlugin implements Listener {
                 createLobby();
             }
         }.runTaskLater(this, 40L); // 2 секунды задержка для загрузки мира
+        
+        // Периодическая проверка порталов для игроков, стоящих в них
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    // Проверяем только если игрок не на cooldown
+                    UUID playerId = player.getUniqueId();
+                    Long lastTeleport = teleportCooldowns.get(playerId);
+                    if (lastTeleport != null && System.currentTimeMillis() - lastTeleport < TELEPORT_COOLDOWN_MS) {
+                        continue;
+                    }
+                    
+                    // Проверяем, находится ли игрок в портале
+                    Location playerLoc = player.getLocation();
+                    Location blockLoc = playerLoc.getBlock().getLocation();
+                    portalManager.checkPortalEntry(player, blockLoc);
+                }
+            }
+        }.runTaskTimer(this, 20L, 10L); // Каждые 0.5 секунды
         
         getLogger().info("MineneLobby включен!");
     }
@@ -200,6 +221,13 @@ public class MineneLobby extends JavaPlugin implements Listener {
         
         if (to == null) return;
         
+        // Проверяем только если игрок действительно переместился в другой блок
+        if (from.getBlockX() == to.getBlockX() && 
+            from.getBlockY() == to.getBlockY() && 
+            from.getBlockZ() == to.getBlockZ()) {
+            return; // Игрок не переместился в другой блок
+        }
+        
         // Проверка cooldown после телепортации
         UUID playerId = player.getUniqueId();
         Long lastTeleport = teleportCooldowns.get(playerId);
@@ -207,8 +235,41 @@ public class MineneLobby extends JavaPlugin implements Listener {
             return; // Игрок недавно был телепортирован, пропускаем проверку порталов
         }
         
-        // Проверка входа в портал
-        portalManager.checkPortalEntry(player, to);
+        // Проверка входа в портал (проверяем блок, в котором находится игрок)
+        Location blockLocation = to.getBlock().getLocation();
+        portalManager.checkPortalEntry(player, blockLocation);
+    }
+    
+    @EventHandler
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        // Отключаем спавн мобов в лобби
+        Location spawnLocation = event.getLocation();
+        if (isInLobbyArea(spawnLocation)) {
+            event.setCancelled(true);
+        }
+    }
+    
+    private boolean isInLobbyArea(Location location) {
+        if (lobbyLocation == null) {
+            return false;
+        }
+        
+        if (!location.getWorld().equals(lobbyLocation.getWorld())) {
+            return false;
+        }
+        
+        int size = getConfig().getInt("lobby-size", 50);
+        int halfSize = size / 2;
+        
+        int lobbyX = lobbyLocation.getBlockX();
+        int lobbyZ = lobbyLocation.getBlockZ();
+        
+        int x = location.getBlockX();
+        int z = location.getBlockZ();
+        
+        // Проверяем, находится ли локация в пределах лобби (с небольшим запасом)
+        return Math.abs(x - lobbyX) <= halfSize + 5 && 
+               Math.abs(z - lobbyZ) <= halfSize + 5;
     }
     
     @EventHandler

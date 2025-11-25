@@ -4,6 +4,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -103,6 +108,9 @@ public class PortalManager {
         int minZ = Math.min(portal.getZ1(), portal.getZ2());
         int maxZ = Math.max(portal.getZ1(), portal.getZ2());
         
+        // Определяем направление портала (на какую стену он смотрит)
+        BlockFace portalFace = determinePortalFace(minX, maxX, minZ, maxZ);
+        
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
@@ -112,7 +120,90 @@ public class PortalManager {
             }
         }
         
+        // Создаем табличку с названием портала
+        createPortalSign(portal, portalFace);
+        
         plugin.getLogger().info("Портал " + portal.getName() + " создан");
+    }
+    
+    private BlockFace determinePortalFace(int minX, int maxX, int minZ, int maxZ) {
+        // Определяем, на какую сторону смотрит портал
+        // Портал Омеги: z = -25 (северная стена)
+        // Портал Беты: z = 25 (южная стена)
+        // Портал Веги: x = 25 (восточная стена)
+        
+        if (minZ == -25 || maxZ == -25) {
+            return BlockFace.NORTH; // Северная стена
+        } else if (minZ == 25 || maxZ == 25) {
+            return BlockFace.SOUTH; // Южная стена
+        } else if (minX == 25 || maxX == 25) {
+            return BlockFace.EAST; // Восточная стена
+        } else {
+            return BlockFace.NORTH; // По умолчанию
+        }
+    }
+    
+    private void createPortalSign(Portal portal, BlockFace face) {
+        World world = portal.getWorld();
+        
+        // Определяем название государства
+        String stateName = portal.getName();
+        if (stateName.equalsIgnoreCase("omega")) {
+            stateName = "§6§lОмега";
+        } else if (stateName.equalsIgnoreCase("beta")) {
+            stateName = "§b§lБета";
+        } else if (stateName.equalsIgnoreCase("vega")) {
+            stateName = "§a§lВега";
+        }
+        
+        // Координаты для таблички (перед порталом, на уровне середины)
+        int centerX = (portal.getX1() + portal.getX2()) / 2;
+        int centerY = (portal.getY1() + portal.getY2()) / 2;
+        int centerZ = (portal.getZ1() + portal.getZ2()) / 2;
+        
+        // Размещаем табличку перед порталом
+        int signX = centerX;
+        int signY = centerY;
+        int signZ = centerZ;
+        
+        switch (face) {
+            case NORTH: // Портал смотрит на север, табличка на юг от портала
+                signZ = centerZ + 1;
+                break;
+            case SOUTH: // Портал смотрит на юг, табличка на север от портала
+                signZ = centerZ - 1;
+                break;
+            case EAST: // Портал смотрит на восток, табличка на запад от портала
+                signX = centerX - 1;
+                break;
+            default:
+                signZ = centerZ + 1;
+        }
+        
+        Block signBlock = world.getBlockAt(signX, signY, signZ);
+        signBlock.setType(Material.OAK_SIGN);
+        
+        // Устанавливаем текст на табличке
+        if (signBlock.getState() instanceof org.bukkit.block.Sign) {
+            org.bukkit.block.Sign sign = (org.bukkit.block.Sign) signBlock.getState();
+            
+            // Устанавливаем направление таблички
+            BlockData blockData = signBlock.getBlockData();
+            if (blockData instanceof Directional) {
+                Directional directional = (Directional) blockData;
+                directional.setFacing(face.getOppositeFace()); // Табличка смотрит в сторону портала
+                signBlock.setBlockData(blockData);
+            }
+            
+            // Устанавливаем текст
+            SignSide frontSide = sign.getSide(Side.FRONT);
+            frontSide.setLine(0, "§7═══════════");
+            frontSide.setLine(1, stateName);
+            frontSide.setLine(2, "§7[Нажмите]");
+            frontSide.setLine(3, "§7═══════════");
+            
+            sign.update();
+        }
     }
     
     public void checkPortalEntry(Player player, Location location) {
@@ -124,8 +215,9 @@ public class PortalManager {
             return; // Игрок недавно телепортировался, пропускаем
         }
         
+        // Проверяем точную позицию игрока, а не только блок
         for (Portal portal : portals) {
-            if (portal.isInside(location)) {
+            if (portal.isInside(location) || portal.isInside(player.getLocation())) {
                 teleportPlayer(player, portal);
                 break;
             }
@@ -191,9 +283,10 @@ public class PortalManager {
                 return false;
             }
             
-            int x = location.getBlockX();
-            int y = location.getBlockY();
-            int z = location.getBlockZ();
+            // Проверяем точные координаты, а не только блок
+            double x = location.getX();
+            double y = location.getY();
+            double z = location.getZ();
             
             int minX = Math.min(x1, x2);
             int maxX = Math.max(x1, x2);
@@ -202,9 +295,10 @@ public class PortalManager {
             int minZ = Math.min(z1, z2);
             int maxZ = Math.max(z1, z2);
             
-            return x >= minX && x <= maxX &&
-                   y >= minY && y <= maxY &&
-                   z >= minZ && z <= maxZ;
+            // Проверяем, находится ли позиция внутри портала (с небольшим запасом)
+            return x >= minX - 0.3 && x <= maxX + 0.3 &&
+                   y >= minY - 0.3 && y <= maxY + 0.3 &&
+                   z >= minZ - 0.3 && z <= maxZ + 0.3;
         }
         
         public String getName() { return name; }
