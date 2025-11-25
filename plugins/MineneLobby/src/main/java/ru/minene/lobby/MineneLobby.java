@@ -82,34 +82,54 @@ public class MineneLobby extends JavaPlugin implements Listener {
         int size = getConfig().getInt("lobby-size", 100);
         int halfSize = size / 2;
         
-        Material floorMaterial = Material.valueOf(getConfig().getString("floor-material", "QUARTZ_BLOCK"));
-        Material wallMaterial = Material.valueOf(getConfig().getString("wall-material", "WHITE_CONCRETE"));
+        Material floorMaterial = Material.valueOf(getConfig().getString("floor-material", "WHITE_WOOL"));
+        Material wallMaterial = Material.valueOf(getConfig().getString("wall-material", "WHITE_WOOL"));
+        Material ceilingMaterial = Material.valueOf(getConfig().getString("ceiling-material", "WHITE_WOOL"));
+        int roomHeight = getConfig().getInt("room-height", 5);
         
         int lobbyY = lobbyLocation.getBlockY() - 1;
+        int ceilingY = lobbyY + roomHeight + 1;
         
-        getLogger().info("Создание лобби размером " + size + "x" + size + "...");
+        getLogger().info("Создание лобби размером " + size + "x" + size + " из шерсти...");
         
-        // Создание пола и стен
+        // Создание пола, стен и потолка
         for (int x = -halfSize; x <= halfSize; x++) {
             for (int z = -halfSize; z <= halfSize; z++) {
-                Block block = world.getBlockAt(
+                // Пол
+                Block floorBlock = world.getBlockAt(
                     lobbyLocation.getBlockX() + x,
                     lobbyY,
                     lobbyLocation.getBlockZ() + z
                 );
+                floorBlock.setType(floorMaterial);
                 
-                // Пол
-                block.setType(floorMaterial);
+                // Потолок
+                Block ceilingBlock = world.getBlockAt(
+                    lobbyLocation.getBlockX() + x,
+                    ceilingY,
+                    lobbyLocation.getBlockZ() + z
+                );
+                ceilingBlock.setType(ceilingMaterial);
                 
                 // Стены (только по периметру)
                 if (x == -halfSize || x == halfSize || z == -halfSize || z == halfSize) {
-                    for (int y = lobbyY + 1; y <= lobbyY + 5; y++) {
+                    for (int y = lobbyY + 1; y <= ceilingY - 1; y++) {
                         Block wallBlock = world.getBlockAt(
                             lobbyLocation.getBlockX() + x,
                             y,
                             lobbyLocation.getBlockZ() + z
                         );
                         wallBlock.setType(wallMaterial);
+                    }
+                } else {
+                    // Очистка внутреннего пространства (удаление блоков внутри комнаты)
+                    for (int y = lobbyY + 1; y <= ceilingY - 1; y++) {
+                        Block airBlock = world.getBlockAt(
+                            lobbyLocation.getBlockX() + x,
+                            y,
+                            lobbyLocation.getBlockZ() + z
+                        );
+                        airBlock.setType(Material.AIR);
                     }
                 }
             }
