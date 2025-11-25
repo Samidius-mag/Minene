@@ -175,12 +175,70 @@ public class MineneLobby extends JavaPlugin implements Listener {
     }
     
     public Location getLobbyLocation() {
-        return lobbyLocation;
+        if (lobbyLocation == null) {
+            return null;
+        }
+        
+        // Возвращаем безопасную локацию (копию, чтобы не изменять оригинал)
+        Location safeLocation = lobbyLocation.clone();
+        
+        // Убеждаемся, что локация безопасна для телепортации
+        World world = safeLocation.getWorld();
+        if (world != null) {
+            int x = safeLocation.getBlockX();
+            int y = safeLocation.getBlockY();
+            int z = safeLocation.getBlockZ();
+            
+            // Проверяем, что блоки не мешают
+            Block blockAt = world.getBlockAt(x, y, z);
+            Block blockAbove = world.getBlockAt(x, y + 1, z);
+            
+            // Если блоки не воздух, ищем свободное место
+            if (blockAt.getType() != Material.AIR || blockAbove.getType() != Material.AIR) {
+                for (int checkY = y; checkY <= y + 3; checkY++) {
+                    Block checkBlock = world.getBlockAt(x, checkY, z);
+                    Block checkBlockAbove = world.getBlockAt(x, checkY + 1, z);
+                    if (checkBlock.getType() == Material.AIR && checkBlockAbove.getType() == Material.AIR) {
+                        safeLocation.setY(checkY);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return safeLocation;
     }
     
     public void teleportToLobby(Player player) {
         if (lobbyLocation != null) {
-            player.teleport(lobbyLocation);
+            // Создаем безопасную локацию для телепортации
+            Location safeLocation = lobbyLocation.clone();
+            
+            // Убеждаемся, что игрок не застрянет в блоках
+            World world = safeLocation.getWorld();
+            int x = safeLocation.getBlockX();
+            int y = safeLocation.getBlockY();
+            int z = safeLocation.getBlockZ();
+            
+            // Проверяем, что блок под ногами не воздух и не портал
+            Block blockBelow = world.getBlockAt(x, y - 1, z);
+            Block blockAt = world.getBlockAt(x, y, z);
+            Block blockAbove = world.getBlockAt(x, y + 1, z);
+            
+            // Если блоки не подходят, ищем безопасное место
+            if (blockAt.getType() != Material.AIR || blockAbove.getType() != Material.AIR) {
+                // Ищем свободное место выше
+                for (int checkY = y; checkY <= y + 3; checkY++) {
+                    Block checkBlock = world.getBlockAt(x, checkY, z);
+                    Block checkBlockAbove = world.getBlockAt(x, checkY + 1, z);
+                    if (checkBlock.getType() == Material.AIR && checkBlockAbove.getType() == Material.AIR) {
+                        safeLocation.setY(checkY);
+                        break;
+                    }
+                }
+            }
+            
+            player.teleport(safeLocation);
             player.sendMessage("§aВы телепортированы в лобби!");
         } else {
             player.sendMessage("§cОшибка: Лобби не найдено!");
