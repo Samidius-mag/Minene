@@ -15,8 +15,8 @@ use-password-hashing: true
 # Соль для хеширования (оставьте пустым для автоматической генерации)
 password-salt: ""
 
-# База данных
+# Хранение данных
 database:
-  type: sqlite
-  file: players.db
+  type: json
+  file: players.json
 

@@ -27,12 +27,8 @@ public class MineneAuth extends JavaPlugin implements Listener {
     public void onEnable() {
         saveDefaultConfig();
         
-        // Инициализация базы данных
-        String dbType = getConfig().getString("database.type", "sqlite");
-        if (dbType.equals("sqlite")) {
-            database = new SQLiteAuthDatabase(this);
-        }
-        
+        // Инициализация базы данных (JSON)
+        database = new JSONAuthDatabase(this);
         database.initialize();
         
         // Регистрация команд
