@@ -79,8 +79,9 @@ public class MineneLobby extends JavaPlugin implements Listener {
         
         lobbyLocation = new Location(world, x, playerY, z, yaw, pitch);
         
-        // Установка точки спавна мира
-        world.setSpawnLocation(lobbyLocation);
+        // Установка точки спавна мира (только после создания лобби)
+        // Не устанавливаем сразу, чтобы не конфликтовать с правителями
+        // world.setSpawnLocation(lobbyLocation);
     }
     
     private void createLobby() {
@@ -149,6 +150,12 @@ public class MineneLobby extends JavaPlugin implements Listener {
         
         // Создание порталов
         portalManager.createPortals();
+        
+        // Установка точки спавна мира после создания лобби
+        if (lobbyLocation != null) {
+            lobbyLocation.getWorld().setSpawnLocation(lobbyLocation);
+            getLogger().info("Точка спавна мира установлена на лобби: " + lobbyLocation);
+        }
         
         getLogger().info("Лобби создано!");
     }
@@ -259,7 +266,9 @@ public class MineneLobby extends JavaPlugin implements Listener {
     }
     
     public void teleportToLobby(Player player) {
+        getLogger().info("teleportToLobby вызван для игрока " + player.getName());
         if (lobbyLocation != null) {
+            getLogger().info("Лобби локация: " + lobbyLocation);
             // Создаем безопасную локацию для телепортации
             Location safeLocation = lobbyLocation.clone();
             
@@ -332,9 +341,12 @@ public class MineneLobby extends JavaPlugin implements Listener {
             // Устанавливаем cooldown перед телепортацией
             teleportCooldowns.put(player.getUniqueId(), System.currentTimeMillis());
             
+            getLogger().info("Телепортация игрока " + player.getName() + " в лобби на координаты: " + safeLocation);
             player.teleport(safeLocation);
             player.sendMessage("§aВы телепортированы в лобби!");
+            getLogger().info("Игрок " + player.getName() + " телепортирован. Текущие координаты: " + player.getLocation());
         } else {
+            getLogger().warning("Лобби локация не найдена для игрока " + player.getName() + "!");
             player.sendMessage("§cОшибка: Лобби не найдено!");
         }
     }

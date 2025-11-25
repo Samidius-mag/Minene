@@ -169,24 +169,34 @@ public class MineneAuth extends JavaPlugin implements Listener {
                                 Object lobbyInstance = lobbyPlugin;
                                 java.lang.reflect.Method teleportMethod = lobbyInstance.getClass().getMethod("teleportToLobby", Player.class);
                                 teleportMethod.invoke(lobbyInstance, player);
+                                getLogger().info("Игрок " + player.getName() + " телепортирован в лобби через teleportToLobby");
                                 return;
                             } catch (Exception e) {
-                                getLogger().warning("Не удалось телепортировать в лобби: " + e.getMessage());
+                                getLogger().warning("Не удалось телепортировать в лобби через teleportToLobby: " + e.getMessage());
+                                e.printStackTrace();
                                 // Fallback: используем getLobbyLocation
                                 try {
                                     java.lang.reflect.Method getLobbyMethod = lobbyPlugin.getClass().getMethod("getLobbyLocation");
                                     Location lobbyLoc = (Location) getLobbyMethod.invoke(lobbyPlugin);
                                     if (lobbyLoc != null) {
+                                        getLogger().info("Игрок " + player.getName() + " телепортирован в лобби через getLobbyLocation: " + lobbyLoc);
                                         player.teleport(lobbyLoc);
                                         return;
+                                    } else {
+                                        getLogger().warning("getLobbyLocation вернул null!");
                                     }
                                 } catch (Exception e2) {
                                     getLogger().warning("Не удалось получить координаты лобби: " + e2.getMessage());
+                                    e2.printStackTrace();
                                 }
                             }
+                        } else {
+                            getLogger().warning("Плагин MineneLobby не найден или не включен!");
                         }
-                        // Fallback на точку спавна
-                        player.teleport(player.getWorld().getSpawnLocation());
+                        // Fallback на точку спавна (НЕ ДОЛЖНО ПРОИСХОДИТЬ!)
+                        Location spawnLoc = player.getWorld().getSpawnLocation();
+                        getLogger().warning("ИСПОЛЬЗУЕТСЯ FALLBACK! Игрок " + player.getName() + " телепортирован в точку спавна: " + spawnLoc);
+                        player.teleport(spawnLoc);
                     }
                 }.runTaskLater(this, 20L); // 1 секунда задержка
             }
