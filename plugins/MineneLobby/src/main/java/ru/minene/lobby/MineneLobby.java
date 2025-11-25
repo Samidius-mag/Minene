@@ -10,13 +10,20 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class MineneLobby extends JavaPlugin implements Listener {
     
     private Location lobbyLocation;
     private PortalManager portalManager;
+    private Map<UUID, Long> teleportCooldowns = new HashMap<>(); // Защита от немедленной проверки порталов после телепортации
+    private static final long TELEPORT_COOLDOWN_MS = 3000; // 3 секунды после телепортации
     
     @Override
     public void onEnable() {
@@ -175,8 +182,24 @@ public class MineneLobby extends JavaPlugin implements Listener {
         
         if (to == null) return;
         
+        // Проверка cooldown после телепортации
+        UUID playerId = player.getUniqueId();
+        Long lastTeleport = teleportCooldowns.get(playerId);
+        if (lastTeleport != null && System.currentTimeMillis() - lastTeleport < TELEPORT_COOLDOWN_MS) {
+            return; // Игрок недавно был телепортирован, пропускаем проверку порталов
+        }
+        
         // Проверка входа в портал
         portalManager.checkPortalEntry(player, to);
+    }
+    
+    @EventHandler
+    public void onPlayerTeleport(PlayerTeleportEvent event) {
+        // Устанавливаем cooldown при любой телепортации
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN || 
+            event.getCause() == PlayerTeleportEvent.TeleportCause.COMMAND) {
+            teleportCooldowns.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
+        }
     }
     
     public Location getLobbyLocation() {
@@ -305,6 +328,9 @@ public class MineneLobby extends JavaPlugin implements Listener {
                     }
                 }
             }
+            
+            // Устанавливаем cooldown перед телепортацией
+            teleportCooldowns.put(player.getUniqueId(), System.currentTimeMillis());
             
             player.teleport(safeLocation);
             player.sendMessage("§aВы телепортированы в лобби!");

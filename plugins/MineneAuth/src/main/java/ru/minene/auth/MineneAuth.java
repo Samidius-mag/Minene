@@ -165,16 +165,24 @@ public class MineneAuth extends JavaPlugin implements Listener {
                         JavaPlugin lobbyPlugin = (JavaPlugin) getServer().getPluginManager().getPlugin("MineneLobby");
                         if (lobbyPlugin != null && lobbyPlugin.isEnabled()) {
                             try {
-                                // Используем рефлексию для доступа к методу лобби
+                                // Используем метод teleportToLobby для безопасной телепортации
                                 Object lobbyInstance = lobbyPlugin;
-                                java.lang.reflect.Method getLobbyMethod = lobbyInstance.getClass().getMethod("getLobbyLocation");
-                                Location lobbyLoc = (Location) getLobbyMethod.invoke(lobbyInstance);
-                                if (lobbyLoc != null) {
-                                    player.teleport(lobbyLoc);
-                                    return;
-                                }
+                                java.lang.reflect.Method teleportMethod = lobbyInstance.getClass().getMethod("teleportToLobby", Player.class);
+                                teleportMethod.invoke(lobbyInstance, player);
+                                return;
                             } catch (Exception e) {
-                                getLogger().warning("Не удалось получить координаты лобби: " + e.getMessage());
+                                getLogger().warning("Не удалось телепортировать в лобби: " + e.getMessage());
+                                // Fallback: используем getLobbyLocation
+                                try {
+                                    java.lang.reflect.Method getLobbyMethod = lobbyPlugin.getClass().getMethod("getLobbyLocation");
+                                    Location lobbyLoc = (Location) getLobbyMethod.invoke(lobbyPlugin);
+                                    if (lobbyLoc != null) {
+                                        player.teleport(lobbyLoc);
+                                        return;
+                                    }
+                                } catch (Exception e2) {
+                                    getLogger().warning("Не удалось получить координаты лобби: " + e2.getMessage());
+                                }
                             }
                         }
                         // Fallback на точку спавна
