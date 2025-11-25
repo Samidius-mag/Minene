@@ -1,7 +1,7 @@
 name: MineneRulers
 version: 1.0.0
 main: ru.minene.rulers.MineneRulers
-api-version: 1.20
+api-version: 1.21
 author: Minene Team
 description: НПС правители государств для сервера Minene
 

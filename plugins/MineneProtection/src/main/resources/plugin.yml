@@ -1,7 +1,7 @@
 name: MineneProtection
 version: 1.0.0
 main: ru.minene.protection.MineneProtection
-api-version: 1.20
+api-version: 1.21
 author: Minene Team
 description: Защита территорий для сервера Minene
 

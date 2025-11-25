@@ -31,22 +31,30 @@ Minecraft сервер с тематикой "Искатели Приключе�
 
 ### Шаги установки:
 
-1. Скачайте PaperMC сервер (рекомdендуемая версия 1.20.1 или выше):
+1. Скачайте PaperMC сервер (рекомендуемая версия 1.21 или выше):
 ```bash
-wget https://api.papermc.io/v2/projects/paper/versions/1.20.1/builds/latest/downloads/paper-1.20.1-latest.jar
+# Для версии 1.21
+wget https://api.papermc.io/v2/projects/paper/versions/1.21/builds/latest/downloads/paper-1.21-latest.jar
+
+# Или для конкретной версии (например, 1.21.10)
+wget https://api.papermc.io/v2/projects/paper/versions/1.21.10/builds/latest/downloads/paper-1.21.10-latest.jar
 ```
 
 2. Создайте папку для сервера и скопируйте jar файл:
 ```bash
 mkdir minecraft-server
 cd minecraft-server
-mv ../paper-1.20.1-latest.jar paper.jar
+mv ../paper-1.21.10-latest.jar paper.jar
+# или для другой версии:
+# mv ../paper-1.21-latest.jar paper.jar
 ```
 
 3. Соберите плагины (см. BUILD.md):
 ```bash
 # Linux/Mac
 chmod +x build-all.sh
+# ВАЖНО: При первой сборке Maven загрузит зависимости - это может занять несколько минут!
+# Не прерывайте процесс (Ctrl+C) во время загрузки!
 ./build-all.sh
 
 # Windows

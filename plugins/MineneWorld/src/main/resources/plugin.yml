@@ -1,7 +1,7 @@
 name: MineneWorld
 version: 1.0.0
 main: ru.minene.world.MineneWorld
-api-version: 1.20
+api-version: 1.21
 author: Minene Team
 description: Генерация границ государств и лавы для сервера Minene
 

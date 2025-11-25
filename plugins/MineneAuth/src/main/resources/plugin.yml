@@ -1,7 +1,7 @@
 name: MineneAuth
 version: 1.0.0
 main: ru.minene.auth.MineneAuth
-api-version: 1.20
+api-version: 1.21
 author: Minene Team
 description: Система авторизации для сервера Minene
 

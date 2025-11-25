@@ -1,7 +1,7 @@
 name: MineneLobby
 version: 1.0.0
 main: ru.minene.lobby.MineneLobby
-api-version: 1.20
+api-version: 1.21
 author: Minene Team
 description: Лобби с порталами в государства для сервера Minene
 
