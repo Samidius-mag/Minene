@@ -61,12 +61,16 @@ public class MineneLobby extends JavaPlugin implements Listener {
         }
         
         double x = getConfig().getDouble("lobby.x", 0.5);
-        double y = getConfig().getDouble("lobby.y", 100);
+        double baseY = getConfig().getDouble("lobby.y", 200);
         double z = getConfig().getDouble("lobby.z", 0.5);
         float yaw = (float) getConfig().getDouble("lobby.yaw", 0);
         float pitch = (float) getConfig().getDouble("lobby.pitch", 0);
         
-        lobbyLocation = new Location(world, x, y, z, yaw, pitch);
+        // Игрок появляется на 1 блок выше пола
+        // Пол находится на baseY - 1, игрок на baseY
+        double playerY = baseY;
+        
+        lobbyLocation = new Location(world, x, playerY, z, yaw, pitch);
         
         // Установка точки спавна мира
         world.setSpawnLocation(lobbyLocation);
@@ -79,18 +83,19 @@ public class MineneLobby extends JavaPlugin implements Listener {
         }
         
         World world = lobbyLocation.getWorld();
-        int size = getConfig().getInt("lobby-size", 100);
+        int size = getConfig().getInt("lobby-size", 50);
         int halfSize = size / 2;
         
         Material floorMaterial = Material.valueOf(getConfig().getString("floor-material", "WHITE_WOOL"));
         Material wallMaterial = Material.valueOf(getConfig().getString("wall-material", "WHITE_WOOL"));
         Material ceilingMaterial = Material.valueOf(getConfig().getString("ceiling-material", "WHITE_WOOL"));
-        int roomHeight = getConfig().getInt("room-height", 5);
+        int roomHeight = getConfig().getInt("room-height", 20);
         
-        int lobbyY = lobbyLocation.getBlockY() - 1;
-        int ceilingY = lobbyY + roomHeight + 1;
+        // Пол находится на 1 блок ниже точки телепортации игрока
+        int floorY = lobbyLocation.getBlockY() - 1;
+        int ceilingY = floorY + roomHeight;
         
-        getLogger().info("Создание лобби размером " + size + "x" + size + " из шерсти...");
+        getLogger().info("Создание лобби размером " + size + "x" + size + "x" + roomHeight + " из шерсти...");
         
         // Создание пола, стен и потолка
         for (int x = -halfSize; x <= halfSize; x++) {
@@ -98,7 +103,7 @@ public class MineneLobby extends JavaPlugin implements Listener {
                 // Пол
                 Block floorBlock = world.getBlockAt(
                     lobbyLocation.getBlockX() + x,
-                    lobbyY,
+                    floorY,
                     lobbyLocation.getBlockZ() + z
                 );
                 floorBlock.setType(floorMaterial);
@@ -113,7 +118,7 @@ public class MineneLobby extends JavaPlugin implements Listener {
                 
                 // Стены (только по периметру)
                 if (x == -halfSize || x == halfSize || z == -halfSize || z == halfSize) {
-                    for (int y = lobbyY + 1; y <= ceilingY - 1; y++) {
+                    for (int y = floorY + 1; y <= ceilingY - 1; y++) {
                         Block wallBlock = world.getBlockAt(
                             lobbyLocation.getBlockX() + x,
                             y,
@@ -123,7 +128,7 @@ public class MineneLobby extends JavaPlugin implements Listener {
                     }
                 } else {
                     // Очистка внутреннего пространства (удаление блоков внутри комнаты)
-                    for (int y = lobbyY + 1; y <= ceilingY - 1; y++) {
+                    for (int y = floorY + 1; y <= ceilingY - 1; y++) {
                         Block airBlock = world.getBlockAt(
                             lobbyLocation.getBlockX() + x,
                             y,
@@ -179,7 +184,8 @@ public class MineneLobby extends JavaPlugin implements Listener {
             return null;
         }
         
-        // Возвращаем безопасную локацию (копию, чтобы не изменять оригинал)
+        // Возвращаем локацию, где игрок должен появиться (на 1 блок выше пола)
+        // Локация уже настроена правильно при загрузке
         Location safeLocation = lobbyLocation.clone();
         
         // Убеждаемся, что локация безопасна для телепортации
@@ -189,11 +195,11 @@ public class MineneLobby extends JavaPlugin implements Listener {
             int y = safeLocation.getBlockY();
             int z = safeLocation.getBlockZ();
             
-            // Проверяем, что блоки не мешают
+            // Проверяем, что блоки не мешают (игрок на 1 блок выше пола)
             Block blockAt = world.getBlockAt(x, y, z);
             Block blockAbove = world.getBlockAt(x, y + 1, z);
             
-            // Если блоки не воздух, ищем свободное место
+            // Если блоки не воздух, ищем свободное место выше
             if (blockAt.getType() != Material.AIR || blockAbove.getType() != Material.AIR) {
                 for (int checkY = y; checkY <= y + 3; checkY++) {
                     Block checkBlock = world.getBlockAt(x, checkY, z);
