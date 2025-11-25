@@ -22,6 +22,7 @@ public class PortalManager {
     private final MineneLobby plugin;
     private List<Portal> portals = new ArrayList<>();
     private Map<UUID, Long> portalCooldowns = new HashMap<>(); // Защита от повторных телепортаций
+    private Map<UUID, Long> portalHintCooldowns = new HashMap<>(); // Защита от спама подсказок
     private static final long PORTAL_COOLDOWN_MS = 2000; // 2 секунды cooldown
     
     public PortalManager(MineneLobby plugin) {
@@ -231,6 +232,13 @@ public class PortalManager {
     
     public void showPortalHint(Player player, Location location) {
         // Показываем подсказку при приближении к порталу (в радиусе 3 блоков)
+        // Используем cooldown, чтобы не спамить сообщениями
+        UUID playerId = player.getUniqueId();
+        Long lastHint = portalHintCooldowns.get(playerId);
+        if (lastHint != null && System.currentTimeMillis() - lastHint < 2000) {
+            return; // Недавно показывали подсказку
+        }
+        
         for (Portal portal : portals) {
             double distance = portal.getDistanceToCenter(location);
             if (distance <= 3.0 && distance > 0.5) {
@@ -242,7 +250,9 @@ public class PortalManager {
                 } else if (stateName.equalsIgnoreCase("vega")) {
                     stateName = "§aВега";
                 }
-                player.sendActionBar("§7Подойдите ближе к порталу " + stateName + " §7или кликните по нему");
+                // Используем обычное сообщение вместо ActionBar
+                player.sendMessage("§7[Портал] Подойдите ближе к порталу " + stateName + " §7или кликните по нему");
+                portalHintCooldowns.put(playerId, System.currentTimeMillis());
                 break;
             }
         }
