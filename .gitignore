@@ -35,6 +35,10 @@ crash-reports/
 plugins/*.jar
 !plugins/*/src/
 
+# Plugin config files (generated on server)
+plugins/*/config.yml
+!plugins/*/src/main/resources/config.yml
+
 # Build files
 target/
 build/

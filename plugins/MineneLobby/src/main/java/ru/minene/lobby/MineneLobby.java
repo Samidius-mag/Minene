@@ -73,11 +73,22 @@ public class MineneLobby extends JavaPlugin implements Listener {
         float yaw = (float) getConfig().getDouble("lobby.yaw", 0);
         float pitch = (float) getConfig().getDouble("lobby.pitch", 0);
         
+        // Проверка и исправление старых координат (y=100 - это координаты правителя!)
+        if (baseY < 150) {
+            getLogger().warning("Обнаружены старые координаты лобби (y=" + baseY + ")! Исправляю на y=200");
+            baseY = 200;
+            // Обновляем конфиг
+            getConfig().set("lobby.y", 200);
+            saveConfig();
+        }
+        
         // Игрок появляется на 1 блок выше пола
         // Пол находится на baseY - 1, игрок на baseY
         double playerY = baseY;
         
         lobbyLocation = new Location(world, x, playerY, z, yaw, pitch);
+        
+        getLogger().info("Лобби локация загружена: " + lobbyLocation);
         
         // Установка точки спавна мира (только после создания лобби)
         // Не устанавливаем сразу, чтобы не конфликтовать с правителями
