@@ -8,11 +8,16 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class PortalManager {
     private final MineneLobby plugin;
     private List<Portal> portals = new ArrayList<>();
+    private Map<UUID, Long> portalCooldowns = new HashMap<>(); // Защита от повторных телепортаций
+    private static final long PORTAL_COOLDOWN_MS = 2000; // 2 секунды cooldown
     
     public PortalManager(MineneLobby plugin) {
         this.plugin = plugin;
@@ -111,6 +116,14 @@ public class PortalManager {
     }
     
     public void checkPortalEntry(Player player, Location location) {
+        UUID playerId = player.getUniqueId();
+        
+        // Проверка cooldown
+        Long lastTeleport = portalCooldowns.get(playerId);
+        if (lastTeleport != null && System.currentTimeMillis() - lastTeleport < PORTAL_COOLDOWN_MS) {
+            return; // Игрок недавно телепортировался, пропускаем
+        }
+        
         for (Portal portal : portals) {
             if (portal.isInside(location)) {
                 teleportPlayer(player, portal);
@@ -127,8 +140,31 @@ public class PortalManager {
             return;
         }
         
+        // Устанавливаем cooldown
+        portalCooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+        
         player.teleport(destination);
-        player.sendMessage("§6Вы телепортированы в государство " + portal.getName() + "!");
+        
+        // Правильное название государства
+        String stateName = portal.getName();
+        if (stateName.equalsIgnoreCase("omega")) {
+            stateName = "Омега";
+        } else if (stateName.equalsIgnoreCase("beta")) {
+            stateName = "Бета";
+        } else if (stateName.equalsIgnoreCase("vega")) {
+            stateName = "Вега";
+        }
+        
+        player.sendMessage("§6Вы телепортированы в государство " + stateName + "!");
+    }
+    
+    public boolean isLocationInPortal(Location location) {
+        for (Portal portal : portals) {
+            if (portal.isInside(location)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private static class Portal {
