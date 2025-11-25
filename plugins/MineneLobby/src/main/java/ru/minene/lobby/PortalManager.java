@@ -111,11 +111,15 @@ public class PortalManager {
         // Определяем направление портала (на какую стену он смотрит)
         BlockFace portalFace = determinePortalFace(minX, maxX, minZ, maxZ);
         
+        // Создаем портал только в области портала (не заменяем всю стену)
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
                     Block block = world.getBlockAt(x, y, z);
-                    block.setType(material);
+                    // Заменяем блок только если это стена (не воздух и не пол/потолок)
+                    if (block.getType() != Material.AIR) {
+                        block.setType(material);
+                    }
                 }
             }
         }
@@ -215,10 +219,30 @@ public class PortalManager {
             return; // Игрок недавно телепортировался, пропускаем
         }
         
-        // Проверяем точную позицию игрока, а не только блок
+        // Проверяем точную позицию игрока
+        Location playerLoc = player.getLocation();
         for (Portal portal : portals) {
-            if (portal.isInside(location) || portal.isInside(player.getLocation())) {
+            if (portal.isInside(location) || portal.isInside(playerLoc)) {
                 teleportPlayer(player, portal);
+                break;
+            }
+        }
+    }
+    
+    public void showPortalHint(Player player, Location location) {
+        // Показываем подсказку при приближении к порталу (в радиусе 3 блоков)
+        for (Portal portal : portals) {
+            double distance = portal.getDistanceToCenter(location);
+            if (distance <= 3.0 && distance > 0.5) {
+                String stateName = portal.getName();
+                if (stateName.equalsIgnoreCase("omega")) {
+                    stateName = "§6Омега";
+                } else if (stateName.equalsIgnoreCase("beta")) {
+                    stateName = "§bБета";
+                } else if (stateName.equalsIgnoreCase("vega")) {
+                    stateName = "§aВега";
+                }
+                player.sendActionBar("§7Подойдите ближе к порталу " + stateName + " §7или кликните по нему");
                 break;
             }
         }
@@ -310,6 +334,22 @@ public class PortalManager {
         public int getY2() { return y2; }
         public int getZ2() { return z2; }
         public Location getDestination() { return destination; }
+        
+        public double getDistanceToCenter(Location location) {
+            if (!location.getWorld().equals(world)) {
+                return Double.MAX_VALUE;
+            }
+            
+            double centerX = (x1 + x2) / 2.0;
+            double centerY = (y1 + y2) / 2.0;
+            double centerZ = (z1 + z2) / 2.0;
+            
+            double dx = location.getX() - centerX;
+            double dy = location.getY() - centerY;
+            double dz = location.getZ() - centerZ;
+            
+            return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        }
     }
 }
 

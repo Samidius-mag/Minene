@@ -8,7 +8,9 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -180,7 +182,7 @@ public class MineneLobby extends JavaPlugin implements Listener {
             }
         }
         
-        // Создание порталов
+        // Создание порталов (после создания стен, чтобы порталы были поверх них)
         portalManager.createPortals();
         
         // Установка точки спавна мира после создания лобби
@@ -214,19 +216,24 @@ public class MineneLobby extends JavaPlugin implements Listener {
     }
     
     @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        // Активация портала при клике
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            Block clickedBlock = event.getClickedBlock();
+            if (clickedBlock != null) {
+                Location blockLoc = clickedBlock.getLocation();
+                portalManager.checkPortalEntry(event.getPlayer(), blockLoc);
+            }
+        }
+    }
+    
+    @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Location from = event.getFrom();
         Location to = event.getTo();
         
         if (to == null) return;
-        
-        // Проверяем только если игрок действительно переместился в другой блок
-        if (from.getBlockX() == to.getBlockX() && 
-            from.getBlockY() == to.getBlockY() && 
-            from.getBlockZ() == to.getBlockZ()) {
-            return; // Игрок не переместился в другой блок
-        }
         
         // Проверка cooldown после телепортации
         UUID playerId = player.getUniqueId();
@@ -235,9 +242,11 @@ public class MineneLobby extends JavaPlugin implements Listener {
             return; // Игрок недавно был телепортирован, пропускаем проверку порталов
         }
         
-        // Проверка входа в портал (проверяем блок, в котором находится игрок)
-        Location blockLocation = to.getBlock().getLocation();
-        portalManager.checkPortalEntry(player, blockLocation);
+        // Проверка входа в портал (проверяем точную позицию игрока)
+        portalManager.checkPortalEntry(player, to);
+        
+        // Показываем подсказку при приближении к порталу
+        portalManager.showPortalHint(player, to);
     }
     
     @EventHandler
